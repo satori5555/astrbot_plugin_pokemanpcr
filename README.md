@@ -61,3 +61,7 @@
 - `unit_image_dir` 留空即可
 - 插件会自动优先读取同级 `unit__`
 - 若手动填写相对路径，也会按插件目录解析
+
+  
+## 友情链接
+- https://github.com/Ice9Coffee/HoshinoBot
