@@ -1,0 +1,78 @@
+{
+  "unit_image_dir": {
+    "type": "string",
+    "description": "可选：公主连结头像目录（原 Hoshino 的 img/priconne/unit 目录）",
+    "hint": "留空时会自动扫描插件目录同级的 unit__（其次 unit）文件夹；若填写相对路径，也会按插件目录解析。",
+    "default": ""
+  },
+  "preload_images": {
+    "type": "bool",
+    "description": "启动时预加载头像资源",
+    "default": true
+  },
+  "use_placeholder_when_missing": {
+    "type": "bool",
+    "description": "缺少真实头像时使用内置占位卡面",
+    "default": true
+  },
+  "poke_get_cards_probability": {
+    "type": "float",
+    "description": "戳一戳掉卡概率",
+    "default": 0.75
+  },
+  "poke_daily_limit": {
+    "type": "int",
+    "description": "每用户每会话每日最多掉卡次数",
+    "default": 3
+  },
+  "rare_probability": {
+    "type": "float",
+    "description": "戳一戳获得稀有卡概率",
+    "default": 0.17
+  },
+  "super_rare_probability": {
+    "type": "float",
+    "description": "戳一戳获得超稀有卡概率",
+    "default": 0.03
+  },
+  "request_valid_time": {
+    "type": "int",
+    "description": "交换请求有效期（秒）",
+    "default": 60
+  },
+  "poke_tip_limit": {
+    "type": "int",
+    "description": "达到掉卡上限后每日最多提示次数",
+    "default": 1
+  },
+  "tip_cd_limit": {
+    "type": "int",
+    "description": "达到掉卡上限提示冷却（秒）",
+    "default": 600
+  },
+  "poke_cooling_time": {
+    "type": "int",
+    "description": "戳一戳冷却（秒）",
+    "default": 3
+  },
+  "give_daily_limit": {
+    "type": "int",
+    "description": "每个用户每日最多接受赠卡次数",
+    "default": 3
+  },
+  "reset_hour": {
+    "type": "int",
+    "description": "每日重置小时（0=0点）",
+    "default": 0
+  },
+  "col_num": {
+    "type": "int",
+    "description": "查看仓库时每行显示卡片数",
+    "default": 17
+  },
+  "omit_threshold": {
+    "type": "int",
+    "description": "奖励卡过多时仅显示稀有度汇总阈值",
+    "default": 20
+  }
+}

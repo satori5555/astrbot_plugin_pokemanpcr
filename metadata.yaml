@@ -1,0 +1,9 @@
+name: astrbot_plugin_pokemanpcr
+display_name: PCR卡片
+desc: 将 Hoshino 的 poke-man-pcr 迁移到 AstrBot 的公主连结卡片收集插件
+author: satori5555
+version: 1.0.0
+repo: https://github.com/satori5555/astrbot_plugin_pokemanpcr
+support_platforms:
+  - aiocqhttp
+astrbot_version: ">=4.16,<5"
