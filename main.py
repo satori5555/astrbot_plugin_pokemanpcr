@@ -421,7 +421,6 @@ class CardCatalog:
     def get_chara_name(self, card_id: int) -> tuple[str, str, str]:
         rarity = self.get_card_rarity(card_id)
         chara_id = card_id % 1000 + (card_id // 1000 % 10) * 1000
-        # 由 card_id 反推时，原公式可直接取 card_id % 10000 再按区间修正；这里直接用 entry 更稳。
         entry = self.entries_by_card_id.get(card_id)
         if entry:
             chara_id = entry.chara_id
@@ -632,6 +631,74 @@ class PokeManPCRPlugin(Star):
         t = self._segment_type(seg)
         return 'Poke' in t or 'poke' in t
 
+    def _get_poke_target_id(self, seg, event: AstrMessageEvent) -> str:
+        for attr in ('target_id', 'target', 'qq'):
+            value = getattr(seg, attr, None)
+            if value not in (None, ''):
+                return str(value)
+
+        data = getattr(seg, 'data', None)
+        if isinstance(data, dict):
+            for key in ('target_id', 'target', 'qq', 'user_id'):
+                value = data.get(key)
+                if value not in (None, ''):
+                    return str(value)
+
+        raw = getattr(getattr(event, 'message_obj', None), 'raw_message', None)
+
+        if isinstance(raw, dict):
+            for key in ('target_id', 'target'):
+                value = raw.get(key)
+                if value not in (None, ''):
+                    return str(value)
+
+            raw_data = raw.get('data')
+            if isinstance(raw_data, dict):
+                for key in ('target_id', 'target', 'qq', 'user_id'):
+                    value = raw_data.get(key)
+                    if value not in (None, ''):
+                        return str(value)
+        else:
+            for attr in ('target_id', 'target'):
+                value = getattr(raw, attr, None)
+                if value not in (None, ''):
+                    return str(value)
+
+            raw_data = getattr(raw, 'data', None)
+            if isinstance(raw_data, dict):
+                for key in ('target_id', 'target', 'qq', 'user_id'):
+                    value = raw_data.get(key)
+                    if value not in (None, ''):
+                        return str(value)
+
+        return ''
+
+    def _get_bot_self_id(self, event: AstrMessageEvent) -> str:
+        msg = getattr(event, 'message_obj', None)
+
+        for obj in (msg, getattr(msg, 'raw_message', None)):
+            if obj is None:
+                continue
+
+            if isinstance(obj, dict):
+                value = obj.get('self_id') or obj.get('selfId') or obj.get('bot_id')
+            else:
+                value = (
+                    getattr(obj, 'self_id', None)
+                    or getattr(obj, 'selfId', None)
+                    or getattr(obj, 'bot_id', None)
+                )
+
+            if value not in (None, ''):
+                return str(value)
+
+        return ''
+
+    def _is_poke_to_self(self, seg, event: AstrMessageEvent) -> bool:
+        target_id = self._get_poke_target_id(seg, event)
+        bot_self_id = self._get_bot_self_id(event)
+        return bool(target_id and bot_self_id and target_id == bot_self_id)
+
     def _segments(self, event: AstrMessageEvent) -> list:
         try:
             return list(getattr(event.message_obj, 'message', []) or [])
@@ -695,9 +762,16 @@ class PokeManPCRPlugin(Star):
 
     async def _dispatch(self, event: AstrMessageEvent) -> Outgoing | list[Outgoing] | None:
         segments = self._segments(event)
+
+        has_poke_segment = False
         for seg in segments:
             if self._is_poke_segment(seg):
-                return self._handle_poke(event)
+                has_poke_segment = True
+                if self._is_poke_to_self(seg, event):
+                    return self._handle_poke(event)
+
+        if has_poke_segment:
+            return None
 
         cmd, rest = self._split_command(event)
         if not cmd and not segments:
@@ -722,7 +796,6 @@ class PokeManPCRPlugin(Star):
         if cmd in REFRESH_ALIASES:
             return self._handle_refresh_cards()
 
-        # 兼容原插件：纯文字 “戳”
         content = self._normalized_content(event)
         if content == '戳':
             return self._handle_poke(event)
@@ -1118,7 +1191,6 @@ class PokeManPCRPlugin(Star):
         after_text = ''.join(getattr(seg, 'text', '') for seg in segments[at_index + 1:] if 'plain' in self._segment_type(seg).lower() or 'text' in self._segment_type(seg).lower())
         card_name = after_text.strip()
         if not card_name:
-            # 兼容纯文本参数
             content = self._normalized_content(event)
             after_alias = self._strip_alias_prefix(content, GIVE_ALIASES)
             if after_alias and ' ' in after_alias:
